@@ -2,11 +2,11 @@
 ; @file My polybar config, dumdum
 
 [colors]
-background = #282a36
+background = #10100E
 background-alt = #99333333
 foreground = #dadfe1
 foreground-alt = #555
-primary = #bd93f9
+primary = #4a4c4a
 secondary = #6ef9f9
 alert = #751715
 
