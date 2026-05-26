@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # =============================================================================
 # Dotfiles install script — Ubuntu (Hyprland setup)
-# Run this on a fresh Ubuntu install.
+# Uses GNU Stow to symlink packages into $HOME.
+# Run this on a fresh Ubuntu install from inside the dotfiles directory.
 # =============================================================================
 
 set -euo pipefail
@@ -24,6 +25,7 @@ step()    { echo -e "\n${BOLD}>>> $*${NC}"; }
 # -----------------------------------------------------------------------------
 [[ "$EUID" -eq 0 ]] && die "Do not run as root. The script will call sudo when needed."
 command -v apt &>/dev/null || die "This script requires apt (Ubuntu/Debian)."
+[[ "$(pwd)" == "$DOTFILES_DIR" ]] || die "Run this script from inside the dotfiles directory: cd $DOTFILES_DIR && ./install.sh"
 
 # -----------------------------------------------------------------------------
 # 1. System update
@@ -37,14 +39,11 @@ success "System up to date"
 # -----------------------------------------------------------------------------
 step "Adding repositories"
 
-# Hyprland via Ubuntu PPA (available on Ubuntu 24.04+)
 if ! grep -r "hyprland" /etc/apt/sources.list.d/ &>/dev/null; then
-    # Use the official hyprland Ubuntu PPA
     sudo add-apt-repository -y ppa:hyprland-team/hyprland 2>/dev/null || \
         warn "Hyprland PPA not available — will try apt directly (works on 24.04+)"
 fi
 
-# Nerd Fonts helper (via apt)
 sudo apt update
 success "Repositories ready"
 
@@ -54,17 +53,20 @@ success "Repositories ready"
 step "Installing packages"
 
 PKGS=(
+    # ── Core tool ──────────────────────────────────────────────────────────
+    stow
+
     # ── Hyprland ecosystem ─────────────────────────────────────────────────
-    hyprland          # Wayland compositor
-    hyprlock          # Screen locker
-    hyprpaper         # Wallpaper daemon
+    hyprland
+    hyprlock
+    hyprpaper
     xdg-desktop-portal-hyprland
 
     # ── Status bar ─────────────────────────────────────────────────────────
     waybar
 
     # ── Notifications ──────────────────────────────────────────────────────
-    swaync            # Notification daemon + control center
+    swaync
 
     # ── App launcher ───────────────────────────────────────────────────────
     wofi
@@ -80,24 +82,23 @@ PKGS=(
     pipewire-pulse
     wireplumber
     pavucontrol
-    playerctl         # MPRIS media control (waybar mpris module)
-    pactl             # PulseAudio CLI (included in pulseaudio-utils)
+    playerctl
     pulseaudio-utils
 
     # ── Networking ─────────────────────────────────────────────────────────
     network-manager
-    network-manager-gnome   # nm-connection-editor
-    blueman                 # Bluetooth manager GUI
+    network-manager-gnome
+    blueman
 
     # ── Screenshot / clipboard ─────────────────────────────────────────────
-    grim              # Wayland screenshot
-    slurp             # Region selector
-    wl-clipboard      # wl-copy / wl-paste
+    grim
+    slurp
+    wl-clipboard
 
     # ── File manager ───────────────────────────────────────────────────────
     dolphin
 
-    # ── Fonts ──────────────────────────────────────────────────────────────
+    # ── Fonts (system) ─────────────────────────────────────────────────────
     fonts-font-awesome
     fonts-roboto
 
@@ -110,8 +111,8 @@ PKGS=(
     python3-pip
     jq
 
-    # ── Theming / GTK ──────────────────────────────────────────────────────
-    nwg-look          # GTK theme settings for Wayland
+    # ── Theming ────────────────────────────────────────────────────────────
+    nwg-look
 
     # ── XDG / portal ───────────────────────────────────────────────────────
     xdg-utils
@@ -133,16 +134,11 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 5. MacOS Tahoe Cursor (used by Hyprland)
+# 5. Cursor theme — create ~/.icons if missing (not managed by stow)
 # -----------------------------------------------------------------------------
-step "Checking MacOS-Tahoe-Cursor"
-if [[ ! -d "/usr/share/icons/MacOS-Tahoe-Cursor" && ! -d "$HOME/.local/share/icons/MacOS-Tahoe-Cursor" ]]; then
-    warn "MacOS-Tahoe-Cursor not found — install it from:"
-    warn "https://github.com/ful1e5/apple_cursor or search on Gnome-Look.org"
-    warn "Then place it in ~/.local/share/icons/ and run: hyprctl setcursor MacOS-Tahoe-Cursor 32"
-else
-    success "MacOS-Tahoe-Cursor found"
-fi
+step "Preparing ~/.icons"
+mkdir -p "$HOME/.icons"
+success "~/.icons ready"
 
 # -----------------------------------------------------------------------------
 # 6. Screenshots folder
@@ -152,53 +148,48 @@ mkdir -p "$HOME/Pictures/Screenshots"
 success "~/Pictures/Screenshots ready"
 
 # -----------------------------------------------------------------------------
-# 7. Deploy dotfiles
+# 7. Stow packages
 # -----------------------------------------------------------------------------
-step "Deploying dotfiles"
+step "Stowing dotfiles packages"
 
-# .config/*  ──  merge into ~/.config/
-rsync -av --mkpath "$DOTFILES_DIR/.config/" "$HOME/.config/" \
-    --exclude='*.lock' --exclude='*.pid'
-success ".config deployed"
+# All stow packages in this repo
+PACKAGES=(
+    hypr
+    waybar
+    kitty
+    tmux
+    wofi
+    swaync
+    htop
+    bash
+    git
+    fonts
+    scripts
+    icons
+    wallpaper
+)
 
-# ~/.local/bin scripts
-mkdir -p "$HOME/.local/bin"
-rsync -av "$DOTFILES_DIR/.local/bin/" "$HOME/.local/bin/"
-chmod +x "$HOME/.local/bin/"*
-success ".local/bin scripts deployed"
-
-# Fonts
-mkdir -p "$HOME/.local/share/fonts"
-rsync -av "$DOTFILES_DIR/.local/share/fonts/" "$HOME/.local/share/fonts/"
-fc-cache -f "$HOME/.local/share/fonts"
-success "Fonts deployed and cache updated"
-
-# Wallpaper
-mkdir -p "$HOME/Pictures"
-rsync -av "$DOTFILES_DIR/Pictures/" "$HOME/Pictures/"
-success "Wallpaper deployed"
-
-# Cursor theme
-mkdir -p "$HOME/.icons"
-rsync -av "$DOTFILES_DIR/.icons/" "$HOME/.icons/"
-success "Cursor theme deployed (~/.icons)"
-
-# Home-level dotfiles (.bashrc, .gitconfig)
-for f in .bashrc .gitconfig; do
-    if [[ -f "$DOTFILES_DIR/$f" ]]; then
-        # Back up existing file before overwriting
-        [[ -f "$HOME/$f" ]] && cp "$HOME/$f" "$HOME/${f}.bak" && \
-            info "Backed up existing ~/$f to ~/${f}.bak"
-        cp "$DOTFILES_DIR/$f" "$HOME/$f"
-        success "$f deployed"
+cd "$DOTFILES_DIR"
+for pkg in "${PACKAGES[@]}"; do
+    if [[ -d "$pkg" ]]; then
+        # --restow removes and re-creates stale symlinks
+        stow --restow --target="$HOME" "$pkg"
+        success "stowed: $pkg"
+    else
+        warn "Package directory not found, skipping: $pkg"
     fi
 done
 
-# Make network_menu.sh executable
+# Make scripts executable
+chmod +x "$HOME/.local/bin/"* 2>/dev/null || true
 chmod +x "$HOME/.config/waybar/network_menu.sh" 2>/dev/null || true
 
+# Register fonts
+fc-cache -f "$HOME/.local/share/fonts"
+success "Font cache updated"
+
 # -----------------------------------------------------------------------------
-# 8. Enable pipewire as default audio
+# 8. Enable PipeWire audio
 # -----------------------------------------------------------------------------
 step "Enabling PipeWire audio"
 systemctl --user enable --now pipewire pipewire-pulse wireplumber 2>/dev/null || \
@@ -217,4 +208,8 @@ echo -e "Next steps:"
 echo -e "  1. ${YELLOW}Log out${NC} and select ${YELLOW}Hyprland${NC} in your display manager"
 echo -e "  2. For GPU monitoring in swaync, install ${YELLOW}nvtop${NC}: sudo apt install nvtop"
 echo -e "  3. Reboot to apply all session changes: ${CYAN}sudo reboot${NC}"
+echo ""
+echo -e "Tip: to add/remove a config package later:"
+echo -e "  ${CYAN}stow --target=\$HOME hypr${NC}        # symlink"
+echo -e "  ${CYAN}stow --delete --target=\$HOME hypr${NC}  # remove symlinks"
 echo ""
