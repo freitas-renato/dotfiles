@@ -39,10 +39,13 @@ success "System up to date"
 # -----------------------------------------------------------------------------
 step "Adding repositories"
 
-if ! grep -r "hyprland" /etc/apt/sources.list.d/ &>/dev/null; then
-    sudo add-apt-repository -y ppa:hyprland-team/hyprland 2>/dev/null || \
-        warn "Hyprland PPA not available — will try apt directly (works on 24.04+)"
-fi
+sudo add-apt-repository universe
+
+#if ! grep -r "hyprland" /etc/apt/sources.list.d/ &>/dev/null; then
+#    sudo add-apt-repository -y ppa:hyprland-team/hyprland 2>/dev/null || \
+#        warn "Hyprland PPA not available — will try apt directly (works on 24.04+)"
+#fi
+
 
 sudo apt update
 success "Repositories ready"
@@ -66,7 +69,8 @@ PKGS=(
     waybar
 
     # ── Notifications ──────────────────────────────────────────────────────
-    swaync
+   # swaync
+    sway-notification-center
 
     # ── App launcher ───────────────────────────────────────────────────────
     wofi
@@ -150,6 +154,21 @@ success "~/Pictures/Screenshots ready"
 # -----------------------------------------------------------------------------
 # 7. Stow packages
 # -----------------------------------------------------------------------------
+step "Backing up pre-existing dotfiles that would conflict with Stow"
+
+CONFLICTS=(
+    "$HOME/.bashrc"
+    "$HOME/.bash_logout"
+    "$HOME/.profile"
+    "$HOME/.gitconfig"
+)
+for f in "${CONFLICTS[@]}"; do
+    if [[ -e "$f" && ! -L "$f"  ]]; then
+         mv "$f" "${f}.bak"
+         info "Backed up: $f -> ${f}.bak"
+    fi
+done
+
 step "Stowing dotfiles packages"
 
 # All stow packages in this repo
@@ -192,9 +211,9 @@ success "Font cache updated"
 # 8. Enable PipeWire audio
 # -----------------------------------------------------------------------------
 step "Enabling PipeWire audio"
-systemctl --user enable --now pipewire pipewire-pulse wireplumber 2>/dev/null || \
-    warn "Could not enable pipewire services — may need a reboot"
-success "PipeWire audio configured"
+#systemctl --user enable --now pipewire pipewire-pulse wireplumber 2>/dev/null || \
+#    warn "Could not enable pipewire services — may need a reboot"
+#success "PipeWire audio configured"
 
 # -----------------------------------------------------------------------------
 # Done
