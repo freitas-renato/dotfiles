@@ -1,0 +1,216 @@
+{
+    // "sway/workspaces": {
+    //     // "format": "{icon}",
+    //     "on-scroll-down": "swaymsg workspace next",
+    //     "on-scroll-up": "swaymsg workspace prev",
+    //     // "persistent-workspaces": { "*": 6 },
+    //     "cursor" : true
+    //     // "format-icons": {
+    //     //     "active": "󰮯",
+    //     //     "persistent": "",
+    //     //     "empty": ""
+    //     //  }
+    // },
+
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "on-scroll-down": "hyprctl dispatch workspace next",
+        "on-scroll-up": "hyprctl dispatch workspace prev",
+        "cursor": true
+    },
+
+    "hyprland/window": {
+        "max-length": 45,
+        "format": "{title}",
+        "window-rewrite": {
+            ".*foot.*": "Foot Terminal"
+        },
+        "icon": true,
+        "icon-size": 15
+    },
+
+    "hyprland/submap": {
+        "format": "Mode: {}",
+        "tooltip": false
+    },
+
+    "sway/window" : {
+        "max-length": 45,
+        "format": "{title}",
+        "window-rewrite": {
+            ".*foot.*": "Foot Terminal"
+        },
+        "icon": true,
+        "icon-size": 15
+    },
+
+    "cpu": {
+        "interval": 10,
+        "format":" {usage}%",
+        "states": {
+            "warning": 80,
+            "critical": 90
+        }
+    },
+
+    "tray" : {
+        "icon-size": 13,
+        "spacing": 10,
+        "cursor": true
+    },
+
+    "load": {
+        "interval": 10,
+        "format": " {load1}",
+        "cursor": true
+    },
+
+    "memory": {
+        "interval": 10,
+        "format": "  {used:0.1f}G/{total:0.1f}G",
+        "states": {
+            "warning": 80,
+            "critical": 90
+        }
+    },
+
+    "temperature": {
+        "interval": 10,
+        "format": "{icon} {temperatureC}°",
+        "critical-threshold": 90,
+        "format-icons": ["","","","",""]	
+    },
+
+    "backlight": {
+        "scroll-step" : 2,
+        "format": "{icon} {percent}%",
+        "tooltip-format" : "{percent}%",
+        "format-icons": ["","","","","","","","","","","","","","",""]
+    },
+
+    "pulseaudio": {
+        "format": "{icon}  {volume}%",
+        "format-bluetooth": "{icon}  {volume}%",
+        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+        "on-click-right": "swaymsg exec -- pavucontrol -t 4",
+        "scroll-step": 2,
+        "tooltip": false,
+        "format-muted": "{icon}",
+        "format-icons": {
+            "headphone": "",
+            "headset": "",
+            "headphone-muted": "󰟎",
+            "headset-muted": "󰟎",
+            "default": ["", ""],
+            "default-muted": "󰖁"
+        }
+    },
+
+    "network": {
+        "interval": 10,
+        "format-disabled": "",
+        // "format-wifi": "  {essid} ({signalStrength} )",
+        "format-wifi": "{essid} ({signalStrength}%)",
+        "format-ethernet": "󱓞 Wired connection",
+        "format-disconnected": "",
+        "on-click": "nm-connection-editor"
+    },
+
+    "bluetooth": {
+        "format": "{}",
+        "format-on": "󰂰 <i>Active</i> ",
+        "format-off": "󰂲",
+        "format-disabled": "󰂲",
+        "format-connected": "{device_alias}",
+        "format-connected-battery": "{device_alias}   {device_battery_percentage}%",
+        "tooltip-format": "{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}",
+        "tooltip-format-enumerate-connected-battery": "{device_alias}\t {device_battery_percentage}%",
+        "on-click": "~/.local/bin/toggle_bluetooth &",
+        "on-click-right": "hyprctl dispatch exec blueman-manager"
+    },
+
+    "battery": {
+        "interval": 20,
+        "full-at": 100,
+        "tooltip": true,
+        "format-full": "󰁹 Full",
+        "format": "{icon} {capacity}%",
+        "format-time": "{H}:{M:02}",
+        "format-charging": " {capacity}% ({time})",
+        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂂", "󰁹"],
+        "states": {
+            "warning": 30,
+            "critical": 15
+        }
+    },
+
+    "clock": {
+        "timezone": "America/Brazil/Sao_Paulo",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "format-alt": "{:%H:%M %d %B %Y}",
+        "on-click-right": "swaymsg exec 'foot --class=peaclock -e peaclock'",
+        "calendar": {
+            "mode": "month",
+            "format": {
+                "months": "<b>{}</b>",
+                "days": "<span color='#acb0d0'><b>{}</b></span>",
+                "today": "<span color='#41a6b5'><b><u>{}</u></b></span>"
+		    }
+        }
+    },
+
+    "mpris": {
+        "format": "{artist} - {title}",
+        "tooltip-format" : "{album}",
+        "format-paused": " {artist} - {title}",
+        "on-click": "playerctl play-pause",
+        "on-scroll-up": "playerctl previous",
+        "on-scroll-down": "playerctl next",
+        "max-length": 45
+    },
+
+    "power-profiles-daemon": {
+        "format": "{icon}",
+        "tooltip-format": "Power profile: {profile}",
+        "format-icons": {
+            "performance": "",
+            "balanced": "",
+            "power-saver": ""
+        }
+    },
+
+    "custom/start": {
+        "format": "",
+        "on-click": "wofi --show drun"
+    },
+
+    "custom/ctlcenter" : {
+        "tooltip" : false,
+        "format" : "󰎟",
+        "on-click" : "swaync-client -t",
+        "menu": "on-click-right",
+        "menu-file": "~/.config/waybar/context/ctlcenter.xml",
+        "menu-actions": {
+            "action-1-1": "swaymsg exec 'foot -e htop'",
+            "action-1-2": "swaymsg exec 'foot -e nvtop'",
+            "action-1-3": "swaymsg exec 'foot -e pkexec powertop'",
+            "action-1-4": "swaymsg exec 'missioncenter'",
+
+            "action-2-1": "swaymsg exec nwg-look",
+            "action-2-2": "swaymsg exec qt6ct",
+            "action-2-3": "swaymsg exec kvantummanager",
+
+
+            // "action-3-1": "swaymsg output eDP-1 mode 1920x1080@60",
+  			// "action-3-2": "swaymsg output eDP-1 mode 1920x1080@90",
+  			// "action-3-3": "swaymsg output eDP-1 mode 1920x1080@144",
+
+            "action-4-1": "swaymsg exec ~/.local/bin/caffeine shutdown",
+            "action-4-2": "swaymsg exec ~/.local/bin/caffeine handle-lid-switch",
+
+            "action-5": "swaymsg exec ~/.local/bin/powersafe",
+            "action-6": "swaymsg reload"
+  		}
+    }
+}
