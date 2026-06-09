@@ -10,6 +10,7 @@ KEYBOARDS = [
     "revo-molly60mx-keyboard",
     "wilba.tech-wt65-h2",
     "at-translated-set-2-keyboard",
+    "ite-tech.-inc.-ite-device(8176)-keyboard",
     # Add other keyboards here
 ]
 
