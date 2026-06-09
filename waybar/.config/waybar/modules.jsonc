@@ -92,7 +92,7 @@
         "format": "{icon}  {volume}%",
         "format-bluetooth": "{icon}  {volume}%",
         "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
-        "on-click-right": "swaymsg exec -- pavucontrol -t 4",
+        "on-click-right": "pavucontrol -t 4",
         "scroll-step": 2,
         "tooltip": false,
         "format-muted": "{icon}",
@@ -110,9 +110,9 @@
         "interval": 10,
         "format-disabled": "",
         // "format-wifi": "  {essid} ({signalStrength} )",
-        "format-wifi": "{essid} ({signalStrength}%)",
+        "format-wifi": " {essid} ({signalStrength}%)",
         "format-ethernet": "󱓞 Wired connection",
-        "format-disconnected": "",
+        "format-disconnected": " No connection",
         "on-click": "nm-connection-editor"
     },
 
@@ -121,8 +121,8 @@
         "format-on": "󰂰 <i>Active</i> ",
         "format-off": "󰂲",
         "format-disabled": "󰂲",
-        "format-connected": "{device_alias}",
-        "format-connected-battery": "{device_alias}   {device_battery_percentage}%",
+        "format-connected": "󰂰 {device_alias}",
+        "format-connected-battery": "󰂰 {device_alias}   {device_battery_percentage}%",
         "tooltip-format": "{device_enumerate}",
         "tooltip-format-enumerate-connected": "{device_alias}",
         "tooltip-format-enumerate-connected-battery": "{device_alias}\t {device_battery_percentage}%",
@@ -192,25 +192,25 @@
         "menu": "on-click-right",
         "menu-file": "~/.config/waybar/context/ctlcenter.xml",
         "menu-actions": {
-            "action-1-1": "swaymsg exec 'foot -e htop'",
-            "action-1-2": "swaymsg exec 'foot -e nvtop'",
-            "action-1-3": "swaymsg exec 'foot -e pkexec powertop'",
-            "action-1-4": "swaymsg exec 'missioncenter'",
+            "action-1-1": "hyprctl dispatch exec 'foot -e htop'",
+            "action-1-2": "hyprctl dispatch exec 'foot -e nvtop'",
+            "action-1-3": "hyprctl dispatch exec 'foot -e pkexec powertop'",
+            "action-1-4": "hyprctl dispatch exec 'missioncenter'",
 
-            "action-2-1": "swaymsg exec nwg-look",
-            "action-2-2": "swaymsg exec qt6ct",
-            "action-2-3": "swaymsg exec kvantummanager",
+            "action-2-1": "hyprctl dispatch exec nwg-look",
+            "action-2-2": "hyprctl dispatch exec qt6ct",
+            "action-2-3": "hyprctl dispatch exec kvantummanager",
 
 
             // "action-3-1": "swaymsg output eDP-1 mode 1920x1080@60",
   			// "action-3-2": "swaymsg output eDP-1 mode 1920x1080@90",
   			// "action-3-3": "swaymsg output eDP-1 mode 1920x1080@144",
 
-            "action-4-1": "swaymsg exec ~/.local/bin/caffeine shutdown",
-            "action-4-2": "swaymsg exec ~/.local/bin/caffeine handle-lid-switch",
+            "action-4-1": "hyprctl dispatch exec ~/.local/bin/caffeine shutdown",
+            "action-4-2": "hyprctl dispatch exec ~/.local/bin/caffeine handle-lid-switch",
 
-            "action-5": "swaymsg exec ~/.local/bin/powersafe",
-            "action-6": "swaymsg reload"
+            "action-5": "hyprctl dispatch exec ~/.local/bin/powersafe",
+            "action-6": "hyprctl reload"
   		}
     }
 }

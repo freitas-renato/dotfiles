@@ -10,7 +10,8 @@
   color: @text;
   all: unset;
   font-size: 0.95rem;
-  font-family: "CaskaydiaCove Nerd Font Propo";
+  /* font-family: "CaskaydiaCove Nerd Font Propo"; */
+  font-family: "Cartograph CF";
   transition: 200ms;
   font-weight: 700;
 }
@@ -296,6 +297,7 @@
 }
 
 .widget-buttons-grid button > label {
+  font-family: "CaskaydiaCove Nerd Font Propo";
   font-size: 16px;
   color: @text;
 }

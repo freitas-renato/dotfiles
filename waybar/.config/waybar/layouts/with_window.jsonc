@@ -7,8 +7,6 @@
     "group/gleft1" : {
         "orientation": "horizontal",
         "modules" : [
-            // "battery", "cpu", "backlight" 
-            // "sway/workspaces"
             "hyprland/workspaces"
         ]
     },
@@ -16,7 +14,6 @@
     "group/gleft2" : {
         "orientation": "horizontal",
         "modules" : [
-            // "sway/window"
             "hyprland/window"
         ]
     },
@@ -25,14 +22,14 @@
     "group/gright1" : {
         "orientation": "horizontal",
         "modules" : [
-            "memory", "temperature", "battery", "hyprland/submap"
+            "backlight", "memory", "temperature", "battery", "hyprland/submap"
         ]
     },
 
     "group/gright2" : {
         "orientation": "horizontal",
         "modules" : [
-            "pulseaudio", "bluetooth","tray", "network"
+            "pulseaudio", "bluetooth", "network", "tray"
         ]
     },
 

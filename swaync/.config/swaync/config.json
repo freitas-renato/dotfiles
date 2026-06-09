@@ -90,7 +90,7 @@
                 },
                 {
                     "label": "",
-                    "command": "hyprctl dispatch exec kitty -- -e hyprlock ; swaync-client -cp"
+                    "command": "hyprctl dispatch exec hyprlock ; swaync-client -cp"
                 }
             ]
         }
