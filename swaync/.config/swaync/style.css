@@ -1,44 +1,70 @@
-@define-color background      #08080b;
-@define-color text            #acb0d0;
-@define-color text-alt        #787c99;
-@define-color background-alt  #0e0e14;
+/* macOS dark mode never uses pure black for surfaces; it uses elevated greys
+   (#1c1c1e / #2c2c2e). The old #08080b was essentially black, which reads
+   harsh and left the muted blue text looking hollow even though its contrast
+   ratio was fine (9.4:1). These are the macOS values with a slight cool tint
+   kept so the panel still sits with the Tokyo Night waybar.
+   Contrast: text 13.9:1, secondary 6.9:1 (both comfortably past WCAG AA). */
+@define-color background      #1a1b22;
+@define-color text            #e6e7ec;
+@define-color text-alt        #a0a3b3;
+@define-color background-alt  #24252e;
 @define-color selected        alpha(@text-alt, .4);
 @define-color hover           alpha(@selected, .4);
 @define-color urgent          @text-alt;
+
+/* Matches the Hyprland window treatment in hyprland.conf: a near-invisible
+   white hairline plus a soft downward shadow, with depth (not colour) doing
+   the work. Kept numerically in sync with general:col.active_border
+   (ffffff40 -> .25) and decoration:shadow (range 18, offset 0 4). */
+@define-color hairline        alpha(#ffffff, .10);
+@define-color hairline-strong alpha(#ffffff, .16);
 
 * {
   color: @text;
   all: unset;
   font-size: 0.95rem;
-  /* font-family: "CaskaydiaCove Nerd Font Propo"; */
-  font-family: "Cartograph CF";
+  /* SF Pro Text is the macOS UI face. The Nerd Font is listed second on
+     purpose: several widget labels in config.json are glyphs (󰌪, ) that SF
+     does not contain, and naming the fallback explicitly is more predictable
+     than leaving it to fontconfig. */
+  font-family: "SF Pro Text", "CaskaydiaCove Nerd Font Propo", sans-serif;
   transition: 200ms;
-  font-weight: 700;
+  /* Was 700 everywhere, which reads as heavy and un-macOS in a proportional
+     face. Medium is one step up from Regular and the smallest step available:
+     SF Pro Text is installed as static .otf weights, so there is no 450 to
+     interpolate to. Headings step up to 600 individually below. */
+  font-weight: 500;
 }
 
 .notification {
   padding: 0 5px;
-  border-radius: 10px;
-  border: 1px solid #a1a9f1;
+  border-radius: 12px;
+  border: 1px solid @hairline;
   color: @text;
 }
 
+/* The floating toast: hairline + layered shadow, same idea as a Hyprland
+   window. The margin is what gives the shadow room to fall off -- without it
+   GTK clips the blur at the widget edge. */
 .notification-background {
   background: @background;
-  box-shadow: none;
-  border-radius: 10px;
-  margin: 8px;
+  border-radius: 12px;
+  margin: 10px 14px 14px 14px;
+  box-shadow:
+    0 4px 16px alpha(#000000, .42),
+    0 1px 3px alpha(#000000, .30);
 }
 
 .notification-row .inline-reply-entry {
   padding: 5px 10px;
   background: @background-alt;
-  border-radius: 15px;
+  border-radius: 10px;
+  border: 1px solid @hairline;
 }
 
 .notification-row .inline-reply-button {
   padding: 5px 10px;
-  border-radius: 15px;
+  border-radius: 10px;
   background: @hover;
 }
 
@@ -55,13 +81,14 @@
 }
 
 .notification-content .time {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   padding: 2px 0;
-  font-weight: 800;
+  font-weight: 400;
+  color: @text-alt;
 }
 
 .notification .summary {
-  font-weight: 800;
+  font-weight: 600;
   margin-bottom: 2px;
   padding: 2px 0;
   font-size: 1rem;
@@ -69,11 +96,13 @@
 
 .notification .body {
   color: @text-alt;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
 }
 
+/* Critical still has to stand out, but as a warm hairline rather than a
+   saturated frame -- consistent with dropping the old lavender border. */
 .notification.critical {
-  border-color: @urgent;
+  border-color: alpha(#ff6b5e, .45);
 }
 
 .notification.low progress,
@@ -85,7 +114,7 @@
 .notification-background .close-button {
   margin: 6px;
   padding: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
 }
 
@@ -111,16 +140,30 @@
   background: @selected;
 }
 
+/* The panel itself is one big "window": same hairline, same shadow, slightly
+   larger radius because the surface is larger. */
 .control-center {
   background: @background;
-  border-radius: 15px;
-  margin: 5px;
+  border: 1px solid @hairline;
+  border-radius: 16px;
+  margin: 14px;
   padding: 12px;
+  box-shadow:
+    0 6px 24px alpha(#000000, .48),
+    0 1px 3px alpha(#000000, .30);
 }
 
+/* Rows inside the panel are on a surface, not floating above the desktop, so
+   they get no shadow of their own -- stacking shadows here looks like smudge. */
 .control-center .notification-background {
   background: @background-alt;
   margin: 7px 0;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.control-center .notification {
+  border: 1px solid transparent;
 }
 
 /* I dont want to see close buttons in notification center */
@@ -135,7 +178,7 @@
 }
 
 .notification-group-headers {
-  font-weight: bold;
+  font-weight: 600;
   color: @text;
 }
 
@@ -152,22 +195,24 @@
 .notification-group-close-all-button {
   background: transparent;
   color: @text;
-  margin: 4px; 
-  border-radius: 6px;
+  margin: 4px;
+  border-radius: 8px;
   padding: 4px;
 }
 
 /* Do not disturb */
 .widget-dnd {
-  padding: 8px 14px; 
+  padding: 8px 14px;
   border-radius: 12px;
   margin: 5px 0;
   color: @text;
   background: @background-alt;
+  border: 1px solid @hairline;
 }
 
 .widget-dnd > label {
   font-size: 1rem;
+  font-weight: 500;
 }
 
 .widget-dnd switch {
@@ -188,8 +233,9 @@
   margin: 5px 0;
   border-radius: 12px;
   color: @text;
-  font-weight: 800;
+  font-weight: 500;
   background: @background-alt;
+  border: 1px solid @hairline;
 }
 
 .widget-volume label,
@@ -210,14 +256,14 @@
 .widget-backlight trough {
   background: @hover;
   margin-left: 8px;
-  border-radius: 12px;  
+  border-radius: 12px;
 }
 
 .widget-volume highlight,
 .widget-backlight highlight {
   padding: 3.5px;
-  border-radius: 12px;  
-  background: @text;  
+  border-radius: 12px;
+  background: @text;
 }
 
 .widget-dnd switch:hover,
@@ -230,9 +276,10 @@
 
 .widget-mpris {
   background: @background-alt;
-  border-radius: 15px;
+  border: 1px solid @hairline;
+  border-radius: 14px;
   margin: 5px 0;
-  padding: 0 10px; 
+  padding: 0 10px;
 }
 
 .mpris-overlay {
@@ -243,7 +290,7 @@
   background: @background-alt;
   color: @text;
   margin: 0 5px;
-  padding: 10px 0 15px; 
+  padding: 10px 0 15px;
 }
 
 /* Control buttons for mpris widget */
@@ -258,28 +305,29 @@
 }
 
 .widget-mpris-player .mpris-overlay > box:last-child {
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 0 5px;
   background: alpha(@hover, .3);
 }
 
 .widget-mpris-album-art {
-  border-radius: 16px;
+  border-radius: 14px;
   margin: 6px 4px;
 }
 
 .widget-mpris-title,
 .widget-mpris-subtitle {
-  font-weight: 700;
   margin: 0 3px;
-} 
+}
 
 .widget-mpris-title {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
+  font-weight: 600;
 }
- 
+
 .widget-mpris-subtitle {
   font-size: 0.9rem;
+  font-weight: 400;
   color: @text-alt;
 }
 
@@ -287,15 +335,18 @@
   border-radius: 12px;
   padding: 6px 15px;
   background: @background-alt;
+  border: 1px solid @hairline;
 }
 
 .widget-buttons-grid button {
-  padding: 10px 10px; 
+  padding: 10px 10px;
   margin: 3px;
   background: @hover;
-  border-radius: 15px;
+  border-radius: 12px;
 }
 
+/* These labels are Nerd Font glyphs from config.json, not text -- they must
+   keep the icon font regardless of the SF Pro Text default above. */
 .widget-buttons-grid button > label {
   font-family: "CaskaydiaCove Nerd Font Propo";
   font-size: 16px;
@@ -320,6 +371,6 @@
 }
 
 /* Avoid 'annoying' backgroud */
-.blank-window {  
-  background: transparent;  
+.blank-window {
+  background: transparent;
 }
