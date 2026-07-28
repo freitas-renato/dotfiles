@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Clipboard history picker: cliphist + wofi.
+#
+# Bound directly to $mainMod+C, and also reachable from the wofi-launcher
+# palette. Requires the `wl-paste --watch cliphist store` daemons to be
+# running (started from exec-once in hyprland.conf) -- without them cliphist
+# records nothing and this list is simply empty.
+
+set -uo pipefail
+
+if ! command -v cliphist >/dev/null; then
+    notify-send "Clipboard" "cliphist is not installed" 2>/dev/null
+    exit 1
+fi
+
+if ! pgrep -f "wl-paste .*--watch cliphist store" >/dev/null; then
+    notify-send "Clipboard" "cliphist watcher is not running — history will be empty" 2>/dev/null
+fi
+
+# allow_images=false: clipboard text starting with "img:" would otherwise be
+# eaten as an image escape sequence.
+# parse_action=false: we need the raw "<id>\t<preview>" line back, because the
+# leading id is what `cliphist decode` looks up.
+selection=$(cliphist list | wofi \
+    --dmenu \
+    --prompt "Clipboard" \
+    --width 720 \
+    --height 460 \
+    --insensitive \
+    --define allow_images=false \
+    --define parse_action=false)
+
+[ -z "$selection" ] && exit 0
+
+printf '%s' "$selection" | cliphist decode | wl-copy

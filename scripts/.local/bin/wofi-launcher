@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+"""
+wofi command palette: the normal app launcher, plus extra commands at the top.
+
+Replaces `wofi --show drun` as $menu. drun builds its list internally and gives
+no way to add entries to it, so the palette has to run in --dmenu mode and
+supply the apps itself. Gio.AppInfo is the same source drun reads, so the app
+list, the NoDisplay filtering and the launch semantics all match.
+
+Adding a command: append to COMMANDS below. Icons are theme icon names.
+"""
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("Gdk", "4.0")
+from gi.repository import Gdk, Gio, Gtk  # noqa: E402
+
+# (icon name, label, argv to run)
+COMMANDS = [
+    ("edit-paste", "Clipboard history…", ["wofi-clipboard"]),
+]
+
+TERMINAL = ["kitty", "-e"]
+ICON_SIZE = 48
+
+# Hyprland's PATH does NOT include ~/.local/bin, so a bare "wofi-clipboard"
+# here is not findable and the spawn dies silently. Resolve sibling scripts by
+# this script's own location instead, and pass an augmented PATH to children.
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+CHILD_ENV = dict(os.environ, PATH=SCRIPT_DIR + os.pathsep + os.environ.get("PATH", ""))
+
+# Desktop-entry field codes; they are placeholders for files/URLs we don't pass.
+FIELD_CODES = ("%f", "%F", "%u", "%U", "%d", "%D", "%n", "%N", "%i", "%c", "%k", "%v", "%m")
+
+
+def icon_theme():
+    display = Gdk.Display.get_default()
+    return Gtk.IconTheme.get_for_display(display) if display else None
+
+
+def icon_path(theme, gicon):
+    """Resolve a GIcon to a file path wofi can render, or None."""
+    if theme is None or gicon is None:
+        return None
+    if isinstance(gicon, Gio.FileIcon):
+        return gicon.get_file().get_path()
+    if isinstance(gicon, Gio.ThemedIcon):
+        for name in gicon.get_names():
+            if not theme.has_icon(name):
+                continue
+            paintable = theme.lookup_icon(
+                name, None, ICON_SIZE, 1, Gtk.TextDirection.NONE, Gtk.IconLookupFlags.PRELOAD
+            )
+            if paintable is None:
+                continue
+            f = paintable.get_file()
+            if f and f.get_path():
+                return f.get_path()
+    return None
+
+
+def icon_path_by_name(theme, name):
+    return icon_path(theme, Gio.ThemedIcon.new(name))
+
+
+def entry_line(label, path):
+    """wofi dmenu image escape: img:<path>:text:<label>. Paths with ':' would
+    break the escape, so fall back to a plain text row for those."""
+    if path and ":" not in path:
+        return f"img:{path}:text:{label}"
+    return label
+
+
+def build():
+    theme = icon_theme()
+    lines, actions = [], {}
+
+    for icon_name, label, argv in COMMANDS:
+        lines.append(entry_line(label, icon_path_by_name(theme, icon_name)))
+        actions[label] = ("command", argv)
+
+    apps = [a for a in Gio.AppInfo.get_all() if a.should_show()]
+    for app in sorted(apps, key=lambda a: a.get_display_name().casefold()):
+        label = app.get_display_name()
+        if label in actions:  # never let an app shadow a command
+            continue
+        lines.append(entry_line(label, icon_path(theme, app.get_icon())))
+        actions[label] = ("app", app)
+
+    return lines, actions
+
+
+def strip_field_codes(exec_line):
+    parts = [p for p in shlex.split(exec_line) if p not in FIELD_CODES]
+    return [p for p in parts if not (len(p) == 2 and p.startswith("%"))]
+
+
+def notify(body):
+    subprocess.Popen(["notify-send", "Launcher", body])
+
+
+def resolve_program(argv):
+    """Find argv[0] next to this script first, then on PATH. Returns None if
+    it cannot be found -- setsid swallows exec failures, so check up front."""
+    prog = argv[0]
+    if os.path.sep in prog:
+        return argv if os.access(prog, os.X_OK) else None
+    sibling = os.path.join(SCRIPT_DIR, prog)
+    if os.access(sibling, os.X_OK):
+        return [sibling] + argv[1:]
+    found = shutil.which(prog, path=CHILD_ENV["PATH"])
+    return [found] + argv[1:] if found else None
+
+
+def spawn(argv):
+    subprocess.Popen(["setsid", "-f"] + argv, start_new_session=True, env=CHILD_ENV)
+
+
+def launch(action):
+    kind, payload = action
+    if kind == "command":
+        argv = resolve_program(payload)
+        if argv is None:
+            notify(f"Could not find “{payload[0]}”")
+            return
+        spawn(argv)
+        return
+    app = payload
+    # Gio would hand Terminal=true apps to a generic terminal that may not be
+    # installed; route them to kitty explicitly instead.
+    if isinstance(app, Gio.DesktopAppInfo) and app.get_boolean("Terminal"):
+        argv = strip_field_codes(app.get_string("Exec") or "")
+        if argv:
+            spawn(TERMINAL + argv)
+            return
+    app.launch(None, None)
+
+
+def main():
+    lines, actions = build()
+
+    if "--print" in sys.argv:  # debugging aid, no GUI
+        print("\n".join(lines))
+        return 0
+
+    wofi = subprocess.run(
+        [
+            "wofi", "--dmenu",
+            "--prompt", "Search",
+            "--define", "parse_action=true",  # return the label, not the img: escape
+            "--insensitive",
+        ],
+        input="\n".join(lines),
+        capture_output=True,
+        text=True,
+    )
+    choice = wofi.stdout.strip()
+    if not choice:
+        return 0
+
+    action = actions.get(choice)
+    if action is None and choice.startswith("img:") and ":text:" in choice:
+        # parse_action is supposed to strip the image escape and hand back the
+        # bare label. Don't depend on it: recover the label if it came through
+        # raw, otherwise every pick would fall through to the command path.
+        action = actions.get(choice.split(":text:", 1)[1])
+
+    if action is not None:
+        launch(action)
+        return 0
+
+    # Nothing matched, so this is free text the user typed. Run it only if it
+    # is actually a command; otherwise say so instead of silently doing nothing.
+    argv = shlex.split(choice) if choice else []
+    resolved = resolve_program(argv) if argv else None
+    if resolved:
+        spawn(resolved)
+    else:
+        notify(f"No match for “{choice}”")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
