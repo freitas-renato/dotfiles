@@ -61,7 +61,9 @@ PKGS=(
 
     # ── Hyprland ecosystem ─────────────────────────────────────────────────
     hyprland
-    hyprlock
+    swaylock
+    gtklock
+    swayidle
     hyprpaper
     xdg-desktop-portal-hyprland
 
@@ -98,6 +100,8 @@ PKGS=(
     grim
     slurp
     wl-clipboard
+    cliphist
+    7zip
 
     # ── File manager ───────────────────────────────────────────────────────
     dolphin
@@ -179,6 +183,10 @@ PACKAGES=(
     tmux
     wofi
     swaync
+    gtklock
+    swaylock
+    fontconfig
+    gtk
     htop
     bash
     git
@@ -208,6 +216,29 @@ fc-cache -f "$HOME/.local/share/fonts"
 success "Font cache updated"
 
 # -----------------------------------------------------------------------------
+# 7b. Apple fonts + UI font settings
+# -----------------------------------------------------------------------------
+# The SF/New York fonts are NOT in this repo: Apple's licence forbids
+# redistributing them and they are ~570MB. The script downloads them from
+# Apple into ~/.local/share/apple-fonts (outside the repo, since
+# ~/.local/share/fonts is a stow symlink into it). The fontconfig package maps
+# the generic families onto them.
+step "Installing Apple SF fonts"
+if fc-list : family | grep -q "SF Pro Text"; then
+    success "SF fonts already installed"
+else
+    "$HOME/.local/bin/install-apple-fonts" || warn "SF font install failed — run ~/.local/bin/install-apple-fonts manually"
+fi
+
+# GTK reads its UI font from gsettings as well as gtk-*/settings.ini, and
+# gsettings is not a file so stow cannot manage it.
+step "Applying UI font settings"
+gsettings set org.gnome.desktop.interface font-name 'SF Pro Text 11'
+gsettings set org.gnome.desktop.interface document-font-name 'SF Pro Text 12'
+gsettings set org.gnome.desktop.interface monospace-font-name 'SF Mono 11'
+success "UI fonts set"
+
+# -----------------------------------------------------------------------------
 # 8. Enable PipeWire audio
 # -----------------------------------------------------------------------------
 step "Enabling PipeWire audio"
@@ -226,6 +257,7 @@ echo ""
 echo -e "Next steps:"
 echo -e "  1. ${YELLOW}Log out${NC} and select ${YELLOW}Hyprland${NC} in your display manager"
 echo -e "  2. For GPU monitoring in swaync, install ${YELLOW}nvtop${NC}: sudo apt install nvtop"
+echo -e "  3. Lock screen is ${YELLOW}gtklock${NC} (\$mainMod+SHIFT+L); swaylock is the fallback"
 echo -e "  3. Reboot to apply all session changes: ${CYAN}sudo reboot${NC}"
 echo ""
 echo -e "Tip: to add/remove a config package later:"
