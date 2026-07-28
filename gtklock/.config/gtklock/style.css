@@ -1,0 +1,199 @@
+/*
+  gtklock styling, matching the macOS treatment used across Hyprland windows,
+  waybar and swaync: elevated grey surface, white hairline, soft shadow,
+  SF Pro typography.
+
+  Node names below were taken from the gtklock binary itself (clock-label,
+  date-label, time-box, window-box, input-field, unlock-button, error-label,
+  warning-label, info-box, message-box). gtklock is GTK3, so this is GTK3 CSS.
+*/
+
+/* Darken the wallpaper slightly so white text stays legible over any image. */
+window {
+  background-color: rgba(10, 10, 13, 0.35);
+}
+
+/* Lock indicator above the clock (SF Symbols lock.fill, see layout.xml).
+   Sized to sit between the clock and the date in visual weight: present, but
+   not competing with the time. */
+#lock-icon {
+  font-family: "SF Pro Text", sans-serif;
+  font-size: 26px;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+  margin-bottom: 6px;
+}
+
+/* SF Pro Rounded: the softer cut, which suits a large friendly clock better
+   than the straight Display face. All nine weights are installed, so 500 is a
+   real Medium instance rather than a synthesised bold.
+   NOTE the lock icon deliberately stays on SF Pro Text: SF Symbols coverage was
+   verified in that file, not in Rounded, and a missing glyph would tofu. */
+#time-box,
+#clock-label {
+  font-family: "SF Pro Rounded", "SF Pro Display", sans-serif;
+  font-size: 115px;
+  font-weight: 500;
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65);
+}
+
+#date-label {
+  font-family: "SF Pro Rounded", "SF Pro Text", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+  margin-bottom: 0;
+}
+
+/* Two zones, so the card moved off window-box and onto the input grid.
+   window-box now spans the screen (see layout.xml) and must be invisible: the
+   top zone is bare text over the wallpaper, with no panel behind it. */
+#window-box {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* Bottom zone: no card either. The entry and the button each carry their own
+   background, so they still read clearly straight over the wallpaper.
+   (This targets the widget *name* body-grid, which had to be added in
+   layout.xml -- GTK CSS matches names, and the grid only had a GtkBuilder id.) */
+#body-grid {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* Hidden via layout.xml (visible=0). Kept here only so the node is documented;
+   the "Password:" text is gone, leaving just the entry. */
+#input-label {
+  font-size: 0px;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+/* Current-user block, above the password field.
+   The avatar is a CIRCLE, which needs equal width and height: min-width and
+   min-height are pinned to the same value and padding is zeroed, otherwise
+   border-radius: 50% draws an ellipse. Safe to rely on min-* alone here (unlike
+   the waybar workspace buttons) because this label sits in a vertical box with
+   halign/valign center, so nothing stretches it.
+   Glyph is SF Symbols person.fill, kept on SF Pro Text where symbol coverage
+   was verified. */
+#user-avatar {
+  font-family: "SF Pro Text", sans-serif;
+  font-size: 34px;
+  min-width: 68px;
+  min-height: 68px;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.88);
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+#user-name {
+  font-family: "SF Pro Rounded", "SF Pro Text", sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  color: #ffffff;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+#input-field {
+  font-family: "SF Pro Text", sans-serif;
+  font-size: 15px;
+  /* Tabular figures so a typed-character count or timer cannot shift width. */
+  font-feature-settings: "tnum";
+  min-height: 34px;
+  /* Kept equal to width-request in layout.xml so there is one obvious width.
+     380 read oversized next to the 68px avatar and the button; 320 is closer in
+     scale to the rest of the block. */
+  min-width: 320px;
+  /* Pill: an absurd radius is clamped to half the height, so the shape holds
+     regardless of how tall the entry ends up. Horizontal padding is widened to
+     suit the round ends and to clear the reveal-password icon. */
+  padding: 4px 18px;
+  /* Neutral translucent glass, matching #user-avatar above rather than the
+     Tokyo Night blue used in waybar/swaync. This screen is monochrome (white
+     type over a greyscale wallpaper), so an accent colour here read as a
+     borrowed component instead of part of the design. */
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+  box-shadow: none;
+}
+
+/* Focus is shown by brightening the ring, not by switching hue. */
+#input-field:focus {
+  background-color: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.48);
+}
+
+#input-field selection {
+  background-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+/* background-image: none is load-bearing. The Yaru theme paints its accent on
+   buttons with a background-image gradient, which sits ON TOP of any
+   background-color we set -- that is why this button rendered Yaru teal instead
+   of the blue below until the gradient was explicitly cleared. Same reason
+   box-shadow/text-shadow are zeroed: the theme supplies both. */
+#unlock-button,
+button#unlock-button {
+  font-family: "SF Pro Text", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  /* Same neutral glass as the entry and the avatar; no accent hue anywhere on
+     this screen. Pill radius to echo the entry rather than the 10px card
+     corners used elsewhere in the desktop. */
+  color: #ffffff;
+  background-image: none;
+  background-color: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+  padding: 6px 22px;
+  margin-top: 12px;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+#unlock-button:hover,
+button#unlock-button:hover {
+  background-image: none;
+  background-color: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+#unlock-button:active,
+button#unlock-button:active {
+  background-image: none;
+  background-color: rgba(255, 255, 255, 0.30);
+}
+
+/* Feedback. Warm red rather than a saturated alert colour, consistent with the
+   critical-notification treatment in swaync. */
+#error-label,
+#warning-label {
+  font-family: "SF Pro Text", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ff6b5e;
+  margin-top: 10px;
+}
+
+#info-box,
+#message-box {
+  font-family: "SF Pro Text", sans-serif;
+  font-size: 13px;
+  color: rgba(230, 231, 236, 0.75);
+}

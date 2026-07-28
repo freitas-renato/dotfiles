@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Custom gtklock layout: identical to the built-in one except the "Password:"
+  label is hidden and the grid's column spacing is removed, so the entry sits
+  alone and centred.
+
+  Extracted from the gtklock binary's embedded GtkBuilder definition, so all
+  widget ids and signal handlers below must stay exactly as gtklock expects
+  them: window_pw_check and window_pw_toggle_vis are looked up by name, and
+  the ids (input-field, unlock-button, clock-label) are how gtklock finds
+  its widgets and how style.css targets them.
+
+  NOTE the label is kept as a hidden widget rather than deleted. gtklock looks
+  its widgets up by id; removing the object entirely risks a NULL lookup and a
+  crashing lock screen, which is a bad failure mode. visible=0 plus
+  no-show-all=1 keeps it out of sight and out of the layout (a hidden GTK widget
+  requests no size), while still existing for any lookup.
+-->
+<interface>
+	<object class="GtkBox" id="window-box">
+		<property name="name">window-box</property>
+		<!-- Two zones: clock block pinned near the top, input card near the
+		     bottom. valign=fill (not center) makes window-box span the screen so
+		     the spacer between the two children can push them apart. -->
+		<property name="margin-top">110</property>
+		<property name="margin-bottom">110</property>
+		<property name="halign">center</property>
+		<property name="valign">fill</property>
+		<property name="orientation">vertical</property>
+		<property name="spacing">0</property>
+		<child>
+			<object class="GtkBox" id="info-box">
+				<property name="name">info-box</property>
+				<property name="halign">center</property>
+				<property name="orientation">vertical</property>
+				<property name="spacing">5</property>
+				<child>
+					<object class="GtkBox" id="time-box">
+						<property name="name">time-box</property>
+						<property name="halign">center</property>
+						<property name="orientation">vertical</property>
+						<child>
+							<!--
+								Lock indicator, above the clock: where iOS and macOS put it.
+								This is the SF Symbols "lock.fill" glyph (U+1003A1), written as
+								a numeric character reference so the file stays plain ASCII.
+								It renders from SF Pro Text, the same family as the clock, so
+								the stroke weight matches. The filled variant is used rather
+								than outlined "lock" because solid shapes hold together better
+								at small sizes. Not a gtklock widget: it is a static label, so
+								gtklock never touches it.
+							-->
+							<object class="GtkLabel" id="lock-icon">
+								<property name="name">lock-icon</property>
+								<property name="halign">center</property>
+								<property name="label">&#x1003A1;</property>
+							</object>
+						</child>
+						<child>
+							<object class="GtkLabel" id="clock-label">
+								<property name="name">clock-label</property>
+								<property name="halign">center</property>
+							</object>
+						</child>
+						<child>
+							<object class="GtkLabel" id="date-label">
+								<property name="name">date-label</property>
+								<property name="halign">center</property>
+							</object>
+						</child>
+					</object>
+				</child>
+			</object>
+			<packing>
+				<property name="expand">0</property>
+				<property name="fill">0</property>
+			</packing>
+		</child>
+		<!-- Empty, expanding: this is what separates the two zones. -->
+		<child>
+			<object class="GtkBox" id="zone-spacer">
+				<property name="orientation">vertical</property>
+			</object>
+			<packing>
+				<property name="expand">1</property>
+				<property name="fill">1</property>
+			</packing>
+		</child>
+		<child>
+			<object class="GtkRevealer" id="body-revealer">
+				<property name="transition-type">none</property>
+				<property name="reveal-child">0</property>
+				<child>
+					<object class="GtkBox" id="body-wrapper">
+						<property name="orientation">vertical</property>
+						<property name="halign">center</property>
+						<property name="spacing">14</property>
+						<child>
+							<!--
+								Current-user block: generic avatar + name, above the password
+								field. The avatar is the SF Symbols "person.fill" glyph inside a
+								circle drawn in CSS (see #user-avatar), rather than the
+								self-contained "person.crop.circle.fill" glyph, so the ring
+								matches the hairline treatment used elsewhere and already forms
+								a slot if a real photo is ever dropped in.
+
+								The name is STATIC text: gtklock has no userinfo module
+								installed, so there is nothing to populate it at runtime. Taken
+								from the GECOS field of /etc/passwd. If the account or its full
+								name changes, this string has to change with it.
+							-->
+							<object class="GtkBox" id="user-box">
+								<property name="orientation">vertical</property>
+								<property name="halign">center</property>
+								<property name="spacing">8</property>
+								<child>
+									<object class="GtkLabel" id="user-avatar">
+										<property name="name">user-avatar</property>
+										<property name="halign">center</property>
+										<property name="label">&#x10026A;</property>
+									</object>
+								</child>
+								<child>
+									<object class="GtkLabel" id="user-name">
+										<property name="name">user-name</property>
+										<property name="halign">center</property>
+										<property name="label">Renato Freitas</property>
+									</object>
+								</child>
+							</object>
+						</child>
+						<child>
+					<object class="GtkGrid" id="body-grid">
+						<property name="name">body-grid</property>
+						<property name="halign">center</property>
+						<property name="row-spacing">5</property>
+						<property name="column-spacing">0</property>
+						<child>
+							<object class="GtkLabel" id="input-label">
+								<property name="name">input-label</property>
+								<property name="label" translatable="yes"></property>
+								<property name="visible">0</property>
+								<property name="no-show-all">1</property>
+							</object>
+							<packing>
+								<property name="left-attach">0</property>
+								<property name="top-attach">0</property>
+							</packing>
+						</child>
+						<child>
+							<object class="GtkEntry" id="input-field">
+								<property name="name">input-field</property>
+								<property name="width-request">320</property>
+								<property name="visibility">0</property>
+								<property name="caps-lock-warning">0</property>
+								<property name="input-purpose">password</property>
+								<property name="secondary-icon-name">view-reveal-symbolic</property>
+								<signal name="icon-release" handler="window_pw_toggle_vis"/>
+								<signal name="activate" handler="window_pw_check"/>
+							</object>
+							<packing>
+								<property name="left-attach">1</property>
+								<property name="top-attach">0</property>
+								<property name="width">2</property>
+							</packing>
+						</child>
+						<child>
+							<object class="GtkRevealer" id="message-revealer">
+								<property name="transition-type">none</property>
+								<property name="no-show-all">1</property>
+								<child>
+									<object class="GtkScrolledWindow" id="message-scrolled-window">
+										<property name="hscrollbar-policy">never</property>
+										<property name="max-content-height">256</property>
+										<property name="propagate-natural-height">1</property>
+										<child>
+											<object class="GtkViewport">
+												<child>
+													<object class="GtkBox" id="message-box">
+														<property name="orientation">vertical</property>
+														<property name="homogeneous">1</property>
+													</object>
+												</child>
+											</object>
+										</child>
+									</object>
+								</child>
+							</object>
+							<packing>
+								<property name="left-attach">1</property>
+								<property name="top-attach">1</property>
+								<property name="width">2</property>
+							</packing>
+						</child>
+						<child>
+							<!-- halign=center, not end: the button sits under the middle of
+							     the entry rather than hanging off its right edge. -->
+							<object class="GtkBox">
+								<property name="halign">center</property>
+								<property name="spacing">5</property>
+								<child>
+									<object class="GtkLabel" id="warning-label">
+										<property name="name">warning-label</property>
+									</object>
+								</child>
+								<child>
+									<object class="GtkLabel" id="error-label">
+										<property name="name">error-label</property>
+									</object>
+								</child>
+								<child>
+									<object class="GtkButton" id="unlock-button">
+										<property name="name">unlock-button</property>
+										<property name="label" translatable="yes">Unlock</property>
+										<style>
+											<class name="suggested-action"/>
+										</style>
+										<signal name="clicked" handler="window_pw_check"/>
+									</object>
+								</child>
+							</object>
+							<packing>
+								<property name="left-attach">1</property>
+								<property name="top-attach">2</property>
+								<property name="width">2</property>
+							</packing>
+						</child>
+					</object>
+						</child>
+					</object>
+				</child>
+			</object>
+			<packing>
+				<property name="expand">0</property>
+				<property name="fill">0</property>
+			</packing>
+		</child>
+	</object>
+</interface>
