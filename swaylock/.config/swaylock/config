@@ -1,0 +1,56 @@
+# swaylock, replacing hyprlock (which froze constantly on this hybrid-GPU box).
+#
+# SCOPE NOTE: plain swaylock draws a background and a password ring, and that
+# is all. It has no clock, no date and no blur, so the old hyprlock screen (120pt
+# clock, date line, user box) cannot be reproduced here. swaylock-effects, the
+# fork that adds --clock and --effect-blur, is not packaged for Ubuntu 26.04.
+# If the clock is wanted back, gtklock is packaged and is GTK3 + CSS styleable.
+#
+# Colours are RRGGBBAA hex WITHOUT a leading '#', and match the palette used
+# across waybar/swaync: elevated grey surface, white hairline, blue accent.
+
+# --- Background -------------------------------------------------------------
+# Same wallpaper hyprpaper uses, so locking does not flash a different image.
+# Absolute path on purpose: swaylock does not expand '~' in its config file.
+image=/home/renato/Pictures/wallpaper.jpeg
+scaling=fill
+# Fallback if the image is ever missing or unreadable.
+color=1a1b22
+
+# --- Indicator --------------------------------------------------------------
+indicator-radius=90
+indicator-thickness=6
+indicator-caps-lock
+show-failed-attempts
+# Do not treat a stray Enter as a password attempt.
+ignore-empty-password
+
+# --- Typography -------------------------------------------------------------
+font=SF Pro Text
+font-size=16
+
+# --- Colours ----------------------------------------------------------------
+# Inner disc: the elevated surface, slightly translucent over the wallpaper.
+inside-color=1a1b22cc
+inside-clear-color=1a1b22cc
+inside-ver-color=1a1b22cc
+inside-wrong-color=1a1b22cc
+
+# Ring: white hairline at rest, blue while verifying, warm red on failure.
+ring-color=ffffff26
+ring-clear-color=ffffff40
+ring-ver-color=7aa2f7cc
+ring-wrong-color=ff6b5ecc
+
+# Keypress feedback arcs.
+key-hl-color=7aa2f7
+bs-hl-color=ff6b5e
+
+text-color=e6e7ec
+text-clear-color=e6e7ec
+text-ver-color=e6e7ec
+text-wrong-color=ff6b5e
+
+# No hard separator lines; the ring alone carries the shape.
+line-color=00000000
+separator-color=00000000
