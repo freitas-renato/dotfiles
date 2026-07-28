@@ -1,8 +1,4 @@
 #!/bin/bash
-INTERNAL="eDP-1"
-
-if hyprctl monitors | grep -q "$INTERNAL"; then
-    hyprctl keyword monitor "$INTERNAL,disabled"
-else
-    hyprctl keyword monitor "$INTERNAL,1920x1080@144Hz,auto,1"
-fi
+# Manual toggle for the internal panel, bound to $mainMod+F7.
+# Delegates to lid.sh so the mode/scale live in exactly one place.
+exec "$(dirname "$(readlink -f "$0")")/lid.sh" toggle
