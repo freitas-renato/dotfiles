@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Single entry point for locking the session.
+#
+# Everything that locks (the $mainMod+SHIFT+L bind, the swaync button, swayidle)
+# goes through here rather than calling gtklock directly, for two reasons:
+#  - it guards against stacking instances, which is easy when both a keybind and
+#    an idle daemon can fire, and a second locker on top of the first is
+#    confusing to dismiss;
+#  - it keeps the choice of locker in one place. gtklock replaced hyprlock
+#    (which froze constantly on this hybrid-GPU machine); swaylock is installed
+#    and configured as a minimal fallback if gtklock ever misbehaves.
+
+set -u
+
+if pgrep -x gtklock >/dev/null 2>&1; then
+    exit 0
+fi
+
+if command -v gtklock >/dev/null 2>&1; then
+    exec gtklock "$@"
+fi
+
+# Fallback: swaylock reads ~/.config/swaylock/config on its own.
+exec swaylock

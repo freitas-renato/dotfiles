@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# swayidle: lock on idle, and lock before the machine sleeps.
+#
+# Started from exec-once in hyprland.conf. -w makes swayidle wait for each
+# before-sleep command to finish before the system actually suspends, so the
+# lock is up *before* the machine sleeps rather than racing it.
+#
+# CAUTION on the dpms line: turning displays off and on is exactly the cycle
+# that previously left this laptop's internal panel black (Intel eDP could not
+# scan out NVIDIA-tiled buffers; fixed via AQ_FORCE_LINEAR_BLIT in
+# hyprland.conf). It should be safe now, but if the internal screen ever comes
+# back dark after an idle period, comment out the timeout/resume dpms pair
+# below first -- that is the most likely culprit.
+
+set -u
+
+LOCK="$HOME/.local/bin/lock"
+
+exec swayidle -w \
+    timeout 900 "$LOCK -d" \
+    timeout 2700 'hyprctl dispatch dpms off' \
+    resume 'hyprctl dispatch dpms on' \
+    before-sleep "$LOCK -d"
