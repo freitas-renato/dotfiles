@@ -1,9 +1,28 @@
-/*style_3*/
+/*
+  Tokyo Night, cleaned up.
+
+  What changed and why:
+   - ONE accent. The old theme outlined the window in lavender (#bb9af7) and
+     selected in blue (#7aa2f7); two accents competing is what made the palette
+     feel off. Chrome is now neutral and blue is the only accent.
+   - Quieter selection. A solid saturated bar across ~1300px was the loudest
+     thing on screen. Now a soft blue tint carries the highlight and the text
+     brightening does the rest.
+   - Calmer geometry. 25px pill radii on a full-width row read as bulbous;
+     14/10/8px reads as a list.
+   - Depth now goes the right way: the input sits *above* the surface (lighter)
+     instead of being a darker hole in it.
+*/
 
 * {
-    font-family: "Font Awesome 5 Free", Roboto, Helvetica, Arial, sans-serif;
+    /* SF Pro Text = the macOS UI face (optical variant for sizes under 20pt).
+       "Font Awesome 5 Free" is kept only for intent: that exact family is NOT
+       installed (only "FontAwesome" is), so it never matches. Icon glyphs are
+       actually served by CaskaydiaCove Nerd Font via Pango fallback. */
+    font-family: "Font Awesome 5 Free", "SF Pro Text", sans-serif;
     font-size: 14px;
     border: none;
+    outline: none;
 }
 
 #window {
@@ -11,45 +30,63 @@
 }
 
 #outer-box {
-    background-color: #24283b;
-    border: 1px solid #bb9af7; 
-    border-radius: 25px;       
-    margin: 10px;
-    padding: 15px;
+    background-color: #1a1b26;
+    border: 1px solid rgba(192, 202, 245, 0.10);
+    border-radius: 14px;
+    margin: 0px;
+    padding: 8px;
 }
 
+/* Search field: one step lighter than the surface, so it reads as raised. */
 #input {
-    background-color: #1a1b26; 
-    color: #c0caf5;            
-    padding: 8px 15px;
-    margin-bottom: 10px;
-    border-radius: 25px;
+    background-color: #24283b;
+    color: #c0caf5;
+    caret-color: #7aa2f7;
+    padding: 9px 13px;
+    margin: 2px 2px 8px 2px;
+    border: 1px solid transparent;
+    border-radius: 10px;
 }
 
 #input:focus {
-    box-shadow: 0 0 0 1px #7aa2f7; 
+    border: 1px solid rgba(122, 162, 247, 0.45);
+}
+
+/* Placeholder / prompt text, dimmed so it recedes behind real input. */
+#input placeholder {
+    color: #565f89;
 }
 
 #scroll {
-    margin-top: 5px;
+    margin: 0px;
 }
 
-#entry {
-    padding: 8px 15px;
-    border-radius: 25px;
-    color: #c0caf5;
+#inner-box {
     background-color: transparent;
 }
 
-#entry:selected {
-    background-color: #7aa2f7; 
-
+#entry {
+    background-color: transparent;
+    padding: 7px 9px;
+    margin: 1px 2px;
+    border-radius: 8px;
 }
 
-#text:selected {
-    color: #1a1b26;            
+/* Soft tint instead of a solid slab; the accent still clearly marks the row. */
+#entry:selected {
+    background-color: rgba(122, 162, 247, 0.18);
 }
 
 #text {
-    padding: 0px 5px;
+    color: #a9b1d6;
+    padding: 0px 2px;
+}
+
+#text:selected {
+    color: #ffffff;
+}
+
+/* Breathing room between the app icon and its label. */
+#img {
+    margin-right: 10px;
 }

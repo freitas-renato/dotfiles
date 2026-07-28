@@ -1,5 +1,13 @@
+# Fixed px rather than %, so the launcher is the same size on the 1920 laptop
+# panel and the 3840 external. 45% of the 4K display was ~1300px wide holding
+# ~200px of content, which is what made it look empty and unbalanced.
+width=640
+height=420
+
 allow_images=true
+image_size=22
 no_actions=true
 hide_scroll=true
-width=45%
-height=40%
+
+# Default prompt is the mode name, which is why the field read "drun".
+prompt=Search
