@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Download and install Apple's San Francisco / New York fonts.
+#
+# WHY THIS IS A SCRIPT AND NOT COMMITTED FONTS:
+#  - Apple's licence does not permit redistributing these files, and this repo
+#    has a public remote. Committing them would be redistribution.
+#  - They are ~570MB, which has no business in a dotfiles repo.
+#
+# Installs to ~/.local/share/apple-fonts, deliberately NOT ~/.local/share/fonts:
+# that path is a stow symlink into this repo, so anything written there lands in
+# git. The fontconfig package adds an explicit <dir> for the location.
+#
+# Requires 7z for the dmg -> pkg -> Payload unwrapping (apt package: 7zip).
+
+set -euo pipefail
+
+DEST="$HOME/.local/share/apple-fonts"
+BASE="https://devimages-cdn.apple.com/design/resources/download"
+FONTS=(SF-Pro SF-Compact SF-Mono NY)
+
+SEVENZ=""
+for c in 7zz 7z 7za; do command -v "$c" >/dev/null 2>&1 && { SEVENZ="$c"; break; }; done
+[ -n "$SEVENZ" ] || { echo "error: need 7z (sudo apt install 7zip)" >&2; exit 1; }
+
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+mkdir -p "$DEST"
+
+for f in "${FONTS[@]}"; do
+    echo ">>> $f"
+    curl -fsSL --retry 3 -o "$work/$f.dmg" "$BASE/$f.dmg"
+
+    # .dmg (HFS) -> .pkg (xar) -> Payload (gzip cpio) -> Library/Fonts/*.otf
+    "$SEVENZ" x -y -o"$work/$f/dmg" "$work/$f.dmg" >/dev/null 2>&1 || true
+    while IFS= read -r -d '' pkg; do
+        "$SEVENZ" x -y -o"$work/$f/pkg" "$pkg" >/dev/null 2>&1 || true
+    done < <(find "$work/$f/dmg" -iname '*.pkg' -type f -print0)
+    for round in 1 2; do
+        while IFS= read -r -d '' pay; do
+            "$SEVENZ" x -y -o"$(dirname "$pay")/u$round" "$pay" >/dev/null 2>&1 || true
+        done < <(find "$work/$f" -name 'Payload*' -type f -print0)
+    done
+
+    # The unwrap produces two identical copies; -n keeps the first of each name.
+    n=0
+    while IFS= read -r -d '' font; do
+        cp --update=none "$font" "$DEST"/ 2>/dev/null || cp -n "$font" "$DEST"/
+        n=$((n + 1))
+    done < <(find "$work/$f" \( -iname '*.otf' -o -iname '*.ttf' \) -type f -print0)
+    echo "    $n font file(s) seen"
+done
+
+fc-cache -f "$DEST"
+echo
+echo "installed $(find "$DEST" -type f | wc -l) fonts to $DEST"
+echo "families:"
+fc-list : family | tr ',' '\n' | sed 's/^ *//' | sort -u |
+    grep -E '^(SF |New York)' | sed 's/^/  /'
