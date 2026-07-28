@@ -46,7 +46,7 @@
 
     "cpu": {
         "interval": 10,
-        "format":" {usage}%",
+        "format":"􀫥 {usage}%",
         "states": {
             "warning": 80,
             "critical": 90
@@ -61,13 +61,13 @@
 
     "load": {
         "interval": 10,
-        "format": " {load1}",
+        "format": "􁐚 {load1}",
         "cursor": true
     },
 
     "memory": {
         "interval": 10,
-        "format": "  {used:0.1f}G/{total:0.1f}G",
+        "format": "􀫦  {used:0.1f}G/{total:0.1f}G",
         "states": {
             "warning": 80,
             "critical": 90
@@ -78,14 +78,14 @@
         "interval": 10,
         "format": "{icon} {temperatureC}°",
         "critical-threshold": 90,
-        "format-icons": ["","","","",""]	
+        "format-icons": ["􁏃","􁏃","􀇬","􁏄","􁏄"]	
     },
 
     "backlight": {
         "scroll-step" : 2,
         "format": "{icon} {percent}%",
         "tooltip-format" : "{percent}%",
-        "format-icons": ["","","","","","","","","","","","","","",""]
+        "format-icons": ["􀆫","􀆫","􀆫","􀆫","􀆫","􀆭","􀆭","􀆭","􀆭","􀆭","􀆮","􀆮","􀆮","􀆮","􀆮"]
     },
 
     "pulseaudio": {
@@ -97,22 +97,22 @@
         "tooltip": false,
         "format-muted": "{icon}",
         "format-icons": {
-            "headphone": "",
-            "headset": "",
-            "headphone-muted": "󰟎",
-            "headset-muted": "󰟎",
-            "default": ["", ""],
-            "default-muted": "󰖁"
+            "headphone": "􀑈",
+            "headset": "􀑈",
+            "headphone-muted": "􀊣",
+            "headset-muted": "􀊣",
+            "default": ["􀊥", "􀊩"],
+            "default-muted": "􀊣"
         }
     },
 
     "network": {
         "interval": 10,
-        "format-disabled": "",
-        // "format-wifi": "  {essid} ({signalStrength} )",
-        "format-wifi": " {essid} ({signalStrength}%)",
-        "format-ethernet": "󱓞 Wired connection",
-        "format-disconnected": " No connection",
+        "format-disabled": "􀙈",
+        // "format-wifi": "􀙇  {essid} ({signalStrength} )",
+        "format-wifi": "􀙇 {essid} ({signalStrength}%)",
+        "format-ethernet": "􀺦 Wired connection",
+        "format-disconnected": "􀙈 No connection",
         "on-click": "nm-connection-editor"
     },
 
@@ -122,10 +122,10 @@
         "format-off": "󰂲",
         "format-disabled": "󰂲",
         "format-connected": "󰂰 {device_alias}",
-        "format-connected-battery": "󰂰 {device_alias}   {device_battery_percentage}%",
+        "format-connected-battery": "󰂰 {device_alias}  􀛨 {device_battery_percentage}%",
         "tooltip-format": "{device_enumerate}",
         "tooltip-format-enumerate-connected": "{device_alias}",
-        "tooltip-format-enumerate-connected-battery": "{device_alias}\t {device_battery_percentage}%",
+        "tooltip-format-enumerate-connected-battery": "{device_alias}\t􀛨 {device_battery_percentage}%",
         "on-click": "~/.local/bin/toggle_bluetooth &",
         "on-click-right": "hyprctl dispatch exec blueman-manager"
     },
@@ -134,11 +134,11 @@
         "interval": 20,
         "full-at": 100,
         "tooltip": true,
-        "format-full": "󰁹 Full",
+        "format-full": "􀛨 Full",
         "format": "{icon} {capacity}%",
         "format-time": "{H}:{M:02}",
-        "format-charging": " {capacity}% ({time})",
-        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂂", "󰁹"],
+        "format-charging": "􀢋 {capacity}% ({time})",
+        "format-icons": ["􀛪", "􀛪", "􀛩", "􀛩", "􀺶", "􀺶", "􀺸", "􀺸", "􀛨"],
         "states": {
             "warning": 30,
             "critical": 15
@@ -163,7 +163,7 @@
     "mpris": {
         "format": "{artist} - {title}",
         "tooltip-format" : "{album}",
-        "format-paused": " {artist} - {title}",
+        "format-paused": "􀊆 {artist} - {title}",
         "on-click": "playerctl play-pause",
         "on-scroll-up": "playerctl previous",
         "on-scroll-down": "playerctl next",
@@ -174,9 +174,9 @@
         "format": "{icon}",
         "tooltip-format": "Power profile: {profile}",
         "format-icons": {
-            "performance": "",
-            "balanced": "",
-            "power-saver": ""
+            "performance": "􀋦",
+            "balanced": "􁐚",
+            "power-saver": "􀥳"
         }
     },
 
@@ -187,7 +187,7 @@
 
     "custom/ctlcenter" : {
         "tooltip" : false,
-        "format" : "󰎟",
+        "format" : "􀋚",
         "on-click" : "swaync-client -t",
         "menu": "on-click-right",
         "menu-file": "~/.config/waybar/context/ctlcenter.xml",

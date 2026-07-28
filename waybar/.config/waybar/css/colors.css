@@ -1,7 +1,12 @@
 /* Tokyo night dark enhanced color theme */
 
-@define-color module-bg rgba(8, 8, 11, 0.9);
-@define-color tooltip-bg rgba(8, 8, 11, 0.9);
+/* Lifted off pure black to match the Hyprland windows and swaync: macOS dark
+   surfaces are elevated greys, not black. Slightly translucent so the
+   wallpaper still reads through, like a real menu bar. */
+@define-color module-bg rgba(26, 27, 34, 0.92);
+@define-color tooltip-bg rgba(26, 27, 34, 0.96);
+/* Same hairline as general:col.active_border (ffffff40) in hyprland.conf. */
+@define-color hairline rgba(255, 255, 255, 0.10);
 @define-color inactive #787c99;
 @define-color fg #acb0d0;
 @define-color workspace-fg @fg;

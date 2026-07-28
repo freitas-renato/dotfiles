@@ -1,8 +1,40 @@
 @import "colors.css";
 
+/*
+  Proportional UI font (SF Pro Text) with two safeguards that keep a status bar
+  from wobbling once the digits stop being monospaced:
+
+  1. font-feature-settings: "tnum" -- tabular figures. Proportional digits are
+     different widths ("111" is 21px, "888" is 27px), so a changing CPU% or
+     clock would resize its module and shove its neighbours every update. With
+     tnum every digit takes the same advance: "111" and "888" are both 27px,
+     and the clock is 40px whether it reads 10:00 or 23:59. Text stays
+     proportional; only the numerals are fixed-width. This is what the macOS
+     menu bar does. NOTE the exact syntax: GTK3 rejects `"tnum" 1` and has no
+     font-variant-numeric, so it must be the bare quoted tag.
+
+  2. The icon fallback stays the *Propo* Nerd Font. The Mono cut was tried, on
+     the theory that state-swapping icons (battery, volume, wifi) would change
+     width and move their module. Measuring killed that idea twice over: Mono
+     squeezes glyphs into one cell and visibly shrinks them (the volume icon
+     goes from 14x11 to 8x6), and the variance it would have fixed is a single
+     icon pair -- only pulseaudio's two icons differ (10px vs 14px), and those
+     swap on mute, not on a timer. Battery, backlight and temperature icon sets
+     are already uniform width in Propo.
+
+  Spacing was also put on a single 4px rhythm: vertical padding was a mix of
+  0 and 2px and horizontal padding ran 7/9/12/18px, which read as uneven once
+  the font stopped being monospaced.
+*/
+
 * {
-    font-family: 'CaskaydiaCove Nerd Font Propo';
-    font-size: 12px;
+    font-family: 'SF Pro Text', 'CaskaydiaCove Nerd Font Propo', sans-serif;
+    font-feature-settings: "tnum";
+    /* 11px rather than 12: SF Symbols have taller ink than the text line (the
+       thermometer is 14px tall at a 12px font), so icon-bearing pills grew past
+       min-height while the text-only clock did not. Dropping a pixel brings the
+       icons under the cap so every pill settles at the same height. */
+    font-size: 11px;
 	border: none;
 	border-radius: 0;
 	min-height: 0;
@@ -12,7 +44,9 @@
 }
 
 #waybar {
-    font-weight: 700;
+    /* Semibold. Medium (500) read a little light against the lifted surface;
+       600 is one step up and still short of the original Bold. */
+    font-weight: 600;
     background: transparent;
     font-size: 14px;
     border-radius: 15px;
@@ -27,7 +61,7 @@ tooltip {
 
 tooltip label {
     padding: 8px;
-	font-weight: bold;
+	font-weight: 500;
 }
 
 .popup * {
@@ -37,7 +71,7 @@ tooltip label {
 
 #tray menu, menu {
     border-radius: 10px;
-    font-weight: 700;
+    font-weight: 500;
     color: @fg;
     background: @tooltip-bg;
 }
@@ -51,30 +85,61 @@ tooltip label {
     background-color: @inactive;
 }
 
-/* global paddings */
+/* global paddings.
+   Horizontal only: any vertical padding here stacks on top of the pill's own,
+   so an icon-bearing module would make its pill taller than a text-only one.
+   The pill's min-height governs height; these just space things sideways. */
 #backlight, #pulseaudio, #network, #temperature,
 #bluetooth, #battery, #memory, #cpu, #load{
-    padding: 2px 7px;
+    padding: 0 8px;
 }
 
 #workspaces, #bluetooth, #battery, #memory, #temperature,
 #network, #pulseaudio, #backlight, #cpu, #load {
     background: transparent;
     border-radius: 15px;
-    margin: 0 3px;
-} 
+    margin: 0 4px;
+}
 
+/* Pills carry the window treatment: elevated surface + hairline border.
+   The shadow is deliberately tiny. The bar's layer surface is only ~31px tall,
+   so a window-sized shadow (range 18, offset 4) has nowhere to fall off and
+   GTK clips it into a hard rectangular halo. 1px offset / 3px blur fits inside
+   the 4px bottom margin and stays soft. macOS's own menu bar has no drop
+   shadow either -- there, depth comes from translucency and the hairline.
+
+   NO VERTICAL MARGIN, and that is deliberate. Group pills (#gleft1, #gright1,
+   ...) stretch to fill the bar's height and ignore margin-top/bottom, while
+   single-module pills (#clock, #custom-ctlcenter) honour it and size to their
+   content. Any vertical margin therefore made the groups exactly that much
+   taller than the clock, which no amount of min-height could reconcile: raising
+   it grew the bar, the groups refilled it, and the gap stayed constant.
+   Measured with margin 0: every pill is 43px. The gap above and below the bar
+   comes from waybar's own layout margin instead (layouts/with_window.jsonc).
+
+   Consequence: the box-shadow below has no room to fall and is effectively
+   clipped. Left in place because it is only 1px and costs nothing; the pills
+   read as elevated from the surface colour and hairline alone.
+
+   border-radius is 9999px rather than a fixed 15px: a fixed radius stops
+   looking like a pill as soon as the height exceeds twice that value, which is
+   what turned these rectangular when the bar grew. An absurd radius is always
+   clamped to half the height, so the shape survives any height change. */
 #custom-start, #custom-logout, #gright1, #gleft1,
-#gright2, #gleft2, #custom-ctlcenter, #power-profiles-daemon {
-    padding: 2px 9px;
-    border-radius: 15px;
+#gright2, #gleft2, #custom-ctlcenter, #power-profiles-daemon,
+#clock {
+    min-height: 20px;
+    padding: 2px 12px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border: 1px solid @hairline;
+    border-radius: 9999px;
     background: @module-bg;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 #clock {
-    padding: 2px 18px;
-    border-radius: 15px;
-    background: @module-bg;
+    padding: 2px 16px;
 }
 
 /* single icons cool size  */
@@ -102,11 +167,24 @@ tooltip label {
 	color: @yellow;
 }
 
+/* Round workspace indicators.
+   border-radius: 50% draws an ELLIPSE unless the box is square, so width and
+   height have to be forced equal. min-width pins the width; the vertical margin
+   pins the height, because the button otherwise stretches to fill the pill and
+   min-height is only a floor.
+   These numbers were measured, not derived: the highlight was screenshotted and
+   its blob measured until the aspect ratio hit exactly 1.00 (25x25 physical px
+   at scale 1.33). Changing the pill height or the font size will change the
+   button's available height and re-introduce an oval, so re-measure if either
+   moves. */
 #workspaces button {
     color: @workspace-fg;
-    font-size: 12px;
-    border-radius: 15px;
-    margin: 0 7px;
+    font-size: 11px;
+    min-width: 19px;
+    min-height: 20px;
+    padding: 0;
+    margin: 4px 3px;
+    border-radius: 50%;
 }
 
 #workspaces button:hover {
@@ -116,34 +194,39 @@ tooltip label {
 #workspaces button:focus, #workspaces button.active {
     background: @workspace-fg;
     color: @module-bg;
-    border-radius: 15px;
-    margin: 0 7px;
+    min-width: 19px;
+    min-height: 20px;
+    padding: 0;
+    margin: 4px 3px;
+    border-radius: 50%;
 }
 
 #mpris, #window {
-    margin: 0 5px;
+    margin: 0 4px;
 }
 
 #mpris.paused {
     color: @inactive;
 }
 
+/* These four were the odd ones out: 0 vertical padding against everything
+   else's 2px, which made them sit a pixel taller than their neighbours. */
 #custom-logout {
     color: @red;
-    margin-right: 5px;
-    padding: 0 12px;
+    margin-right: 4px;
+    padding: 2px 12px;
 }
 
 #custom-ctlcenter {
     color: @blue;
-    margin-right: 5px;
-    padding: 0 12px;
+    margin-right: 4px;
+    padding: 2px 12px;
 }
 
 #custom-start,
 #power-profiles-daemon {
-    margin-left: 5px;
-    padding: 0 12px;
+    margin-left: 4px;
+    padding: 2px 12px;
 }
 
 #custom-start {
